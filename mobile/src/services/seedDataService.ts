@@ -2,6 +2,7 @@
 import { beanRepository } from '../repositories';
 import { Bean, RoastLevel } from '../types';
 import { SEED_BEANS } from '../data/seedBeans';
+import { SEED_ESPRESSO_RECIPES, EspressoRecipe } from '../data/seedEspressoRecipes';
 import { ORIGIN_RECIPES, ROAST_RECIPES, DEFAULT_ESPRESSO, getAverageValue, getRatioValue } from '../data/seedData';
 import { EspressoParameters } from '../types';
 
@@ -35,7 +36,67 @@ export function getRecommendedParameters(
   bean: Bean,
   shotType: 'single' | 'double' = 'double'
 ): RecommendedParameters {
-  // Start with default
+  // First, try to find a matching recipe from SEED_ESPRESSO_RECIPES
+  // Priority: origin + processing > origin > roast level > default
+  
+  let matchedRecipe: EspressoRecipe | null = null;
+  
+  // Try to match origin + processing
+  if (bean.origin && bean.processingMethod) {
+    matchedRecipe = SEED_ESPRESSO_RECIPES.find(
+      (r) =>
+        r.appliesTo.origin?.toLowerCase() === bean.origin?.toLowerCase() &&
+        r.appliesTo.processingMethod?.toLowerCase() === bean.processingMethod?.toLowerCase()
+    ) || null;
+  }
+  
+  // Try to match origin only
+  if (!matchedRecipe && bean.origin) {
+    matchedRecipe = SEED_ESPRESSO_RECIPES.find(
+      (r) => r.appliesTo.origin?.toLowerCase() === bean.origin?.toLowerCase() && !r.appliesTo.processingMethod
+    ) || null;
+  }
+  
+  // Try to match processing only
+  if (!matchedRecipe && bean.processingMethod) {
+    matchedRecipe = SEED_ESPRESSO_RECIPES.find(
+      (r) => r.appliesTo.processingMethod?.toLowerCase() === bean.processingMethod?.toLowerCase() && !r.appliesTo.origin
+    ) || null;
+  }
+  
+  // Try to match roast level
+  if (!matchedRecipe) {
+    matchedRecipe = SEED_ESPRESSO_RECIPES.find(
+      (r) => r.appliesTo.roastLevel === bean.roastLevel && !r.appliesTo.origin && !r.appliesTo.processingMethod
+    ) || null;
+  }
+  
+  // Use matched recipe or fall back to default
+  if (matchedRecipe) {
+    let dose = matchedRecipe.doseG;
+    const ratio = getRatioValue(matchedRecipe.ratio);
+    const temperature = matchedRecipe.tempC;
+    const timeRange = matchedRecipe.timeSec.split('–').map((t) => parseFloat(t.trim()));
+    const time = (timeRange[0] + (timeRange[1] || timeRange[0])) / 2;
+    
+    // Adjust for shot type
+    if (shotType === 'single') {
+      dose = dose / 2;
+    }
+    
+    const yieldAmount = dose * ratio;
+    
+    return {
+      dose: Math.round(dose * 10) / 10,
+      yield: Math.round(yieldAmount * 10) / 10,
+      ratio,
+      time: Math.round(time),
+      temperature,
+      pressure: DEFAULT_ESPRESSO.pressure_bar,
+    };
+  }
+  
+  // Fallback to original logic if no recipe matches
   let dose = DEFAULT_ESPRESSO.dose_g;
   let ratio = getRatioValue(DEFAULT_ESPRESSO.ratio);
   let temperature = DEFAULT_ESPRESSO.temp_c;
@@ -87,6 +148,37 @@ export function getRecommendedParameters(
     temperature: Math.round(temperature),
     pressure,
   };
+}
+
+export function getMatchingRecipes(bean: Bean): EspressoRecipe[] {
+  const matches: EspressoRecipe[] = [];
+  
+  for (const recipe of SEED_ESPRESSO_RECIPES) {
+    let matchesBean = true;
+    
+    if (recipe.appliesTo.roastLevel && recipe.appliesTo.roastLevel !== bean.roastLevel) {
+      matchesBean = false;
+    }
+    
+    if (recipe.appliesTo.origin && recipe.appliesTo.origin.toLowerCase() !== bean.origin?.toLowerCase()) {
+      matchesBean = false;
+    }
+    
+    if (recipe.appliesTo.processingMethod && recipe.appliesTo.processingMethod.toLowerCase() !== bean.processingMethod?.toLowerCase()) {
+      matchesBean = false;
+    }
+    
+    if (matchesBean) {
+      matches.push(recipe);
+    }
+  }
+  
+  // Sort by specificity (more specific matches first)
+  return matches.sort((a, b) => {
+    const aSpecificity = (a.appliesTo.roastLevel ? 1 : 0) + (a.appliesTo.origin ? 1 : 0) + (a.appliesTo.processingMethod ? 1 : 0);
+    const bSpecificity = (b.appliesTo.roastLevel ? 1 : 0) + (b.appliesTo.origin ? 1 : 0) + (b.appliesTo.processingMethod ? 1 : 0);
+    return bSpecificity - aSpecificity;
+  });
 }
 
 export function getOriginFlavorNotes(origin: string): string[] {

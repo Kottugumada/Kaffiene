@@ -228,7 +228,7 @@ export function GuidedDialInScreen() {
           <View style={styles.parametersSection}>
             <Text style={styles.sectionTitle}>Shot Parameters</Text>
             
-            {currentStep === 1 || currentStep === 4 ? (
+            {(currentStep === 1 || currentStep === 4) && (
               <View style={styles.ratioSelector}>
                 <Text style={styles.label}>Ratio</Text>
                 <View style={styles.ratioOptions}>

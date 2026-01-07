@@ -8,8 +8,9 @@ import {
 } from '../types';
 import { calculateRatio } from '../utils/units';
 import { getRecommendedRatio } from './ratioService';
-import { getRecommendedParameters, getOriginFlavorNotes, getRoastFlavorFocus } from './seedDataService';
+import { getRecommendedParameters, getOriginFlavorNotes, getRoastFlavorFocus, getMatchingRecipes } from './seedDataService';
 import type { RecommendedParameters } from './seedDataService';
+import type { EspressoRecipe } from '../data/seedEspressoRecipes';
 
 export interface ParameterSuggestions {
   ratio?: {
@@ -309,15 +310,18 @@ export function getRecommendationsForBean(bean: Bean): {
   parameters: RecommendedParameters;
   flavorNotes: string[];
   flavorFocus: string[];
+  matchingRecipes: EspressoRecipe[];
 } {
   const parameters = getRecommendedParameters(bean);
   const flavorNotes = getOriginFlavorNotes(bean.origin || '');
   const flavorFocus = getRoastFlavorFocus(bean.roastLevel);
+  const matchingRecipes = getMatchingRecipes(bean);
 
   return {
     parameters,
     flavorNotes,
     flavorFocus,
+    matchingRecipes,
   };
 }
 
