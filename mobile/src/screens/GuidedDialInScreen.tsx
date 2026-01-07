@@ -4,9 +4,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Input, Button, StarRating, Slider, Card } from '../components';
 import { useBrewLogStore, useBeanStore } from '../store';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
-import { EspressoParameters, BrewMethod } from '../types';
+import { EspressoParameters, BrewMethod, TroubleshootingAnswer, TroubleshootingDiagnosis } from '../types';
 import { calculateYield, calculateRatio } from '../utils/units';
 import { getRecommendedParameters, getMatchingRecipes } from '../services/seedDataService';
+import { diagnoseTroubleshooting } from '../services/recommendationService';
+import { getRatioById } from '../services/ratioService';
 
 interface DialInStep {
   id: number;
@@ -14,6 +16,7 @@ interface DialInStep {
   content: string;
   showParameters: boolean;
   showTaste: boolean;
+  showTasteProfile?: boolean;
   allowNext: boolean;
 }
 
@@ -93,9 +96,10 @@ const DIAL_IN_STEPS: DialInStep[] = [
   {
     id: 9,
     title: 'How Was Your Shot?',
-    content: 'Tell us about your final shot:\n\n• Rate the shot\n• Add any tasting notes\n• This helps us learn and improve recommendations',
+    content: 'Tell us about your shot. Based on your feedback, we\'ll suggest adjustments if needed.',
     showParameters: false,
     showTaste: true,
+    showTasteProfile: true,
     allowNext: true,
   },
 ];
@@ -117,6 +121,9 @@ export function GuidedDialInScreen() {
   const [rating, setRating] = useState(0);
   const [tasteNotes, setTasteNotes] = useState('');
   const [selectedRatio, setSelectedRatio] = useState('1:2');
+  const [tasteProfile, setTasteProfile] = useState<'sour' | 'bitter' | 'balanced' | 'weak' | null>(null);
+  const [diagnosis, setDiagnosis] = useState<TroubleshootingDiagnosis | null>(null);
+  const [showDiagnosis, setShowDiagnosis] = useState(false);
 
   const selectedBean = beans.find((b) => b.id === beanId);
 
@@ -158,6 +165,71 @@ export function GuidedDialInScreen() {
       const calculatedYield = calculateYield(doseNum, ratio);
       setYieldAmount(calculatedYield.toFixed(1));
     }
+  };
+
+  const generateDiagnosis = (taste: 'sour' | 'bitter' | 'balanced' | 'weak') => {
+    setTasteProfile(taste);
+    
+    if (taste === 'balanced') {
+      setDiagnosis(null);
+      setShowDiagnosis(false);
+      return;
+    }
+
+    const currentShot: EspressoParameters = {
+      dose: parseFloat(dose) || 18,
+      yield: parseFloat(yieldAmount) || 36,
+      time: parseFloat(time) || 28,
+      grind,
+      temperature: parseFloat(temperature) || 93,
+      pressure: parseFloat(pressure) || 9,
+      ratio: calculateRatio(parseFloat(dose) || 18, 'grams', parseFloat(yieldAmount) || 36, 'ml'),
+    };
+
+    const timeNum = parseFloat(time) || 28;
+    const answers: TroubleshootingAnswer = {
+      taste,
+      flow: timeNum < 20 ? 'too_fast' : timeNum > 35 ? 'too_slow' : 'just_right',
+      timing: timeNum,
+    };
+
+    const ratioDef = getRatioById('espresso_standard')!;
+    const diag = diagnoseTroubleshooting(answers, currentShot, ratioDef);
+    setDiagnosis(diag);
+    setShowDiagnosis(true);
+  };
+
+  const applyDiagnosisAndRetry = () => {
+    if (!diagnosis) return;
+    
+    // Apply the recommended changes
+    if (diagnosis.primaryAdjustment.type === 'grind') {
+      if (diagnosis.primaryAdjustment.direction === 'finer') {
+        setGrind(Math.max(0, grind - 10));
+      } else if (diagnosis.primaryAdjustment.direction === 'coarser') {
+        setGrind(Math.min(100, grind + 10));
+      }
+    }
+    
+    if (diagnosis.primaryAdjustment.type === 'ratio' || diagnosis.secondaryAdjustment?.type === 'ratio') {
+      const adj = diagnosis.primaryAdjustment.type === 'ratio' 
+        ? diagnosis.primaryAdjustment 
+        : diagnosis.secondaryAdjustment!;
+      
+      if (adj.direction === 'longer') {
+        handleRatioChange('1:2.2');
+      } else if (adj.direction === 'shorter') {
+        handleRatioChange('1:1.8');
+      }
+    }
+    
+    // Reset for next attempt
+    setShowDiagnosis(false);
+    setTasteProfile(null);
+    setRating(0);
+    setTasteNotes('');
+    // Go back to step 3 (Dial Grind First) to pull another shot
+    setCurrentStep(3);
   };
 
   const handleRatioChange = (ratio: string) => {
@@ -358,21 +430,105 @@ export function GuidedDialInScreen() {
             />
           </View>
         )}
+
+        {step.showTasteProfile && (
+          <View style={styles.tasteProfileSection}>
+            <Text style={styles.sectionTitle}>What's the main flavor issue?</Text>
+            <View style={styles.tasteOptions}>
+              {[
+                { value: 'sour' as const, label: 'Sour / Sharp', icon: '🍋', desc: 'Under-extracted' },
+                { value: 'bitter' as const, label: 'Bitter / Harsh', icon: '☕', desc: 'Over-extracted' },
+                { value: 'weak' as const, label: 'Weak / Watery', icon: '💧', desc: 'Thin body' },
+                { value: 'balanced' as const, label: 'Balanced / Good', icon: '✨', desc: 'Just right!' },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.tasteOption,
+                    tasteProfile === option.value && styles.tasteOptionSelected,
+                  ]}
+                  onPress={() => generateDiagnosis(option.value)}
+                >
+                  <Text style={styles.tasteOptionIcon}>{option.icon}</Text>
+                  <Text style={[
+                    styles.tasteOptionLabel,
+                    tasteProfile === option.value && styles.tasteOptionLabelSelected,
+                  ]}>{option.label}</Text>
+                  <Text style={styles.tasteOptionDesc}>{option.desc}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {showDiagnosis && diagnosis && (
+          <Card style={styles.diagnosisCard}>
+            <Text style={styles.diagnosisTitle}>💡 Recommendation</Text>
+            <Text style={styles.diagnosisAction}>
+              {diagnosis.primaryAdjustment.type === 'grind'
+                ? diagnosis.primaryAdjustment.direction === 'finer'
+                  ? '⚙️ Grind Finer'
+                  : diagnosis.primaryAdjustment.direction === 'coarser'
+                  ? '⚙️ Grind Coarser'
+                  : '⚙️ Maintain Grind'
+                : diagnosis.primaryAdjustment.type === 'ratio'
+                ? diagnosis.primaryAdjustment.direction === 'longer'
+                  ? '📏 Pull Longer (more yield)'
+                  : '📏 Pull Shorter (less yield)'
+                : diagnosis.primaryAdjustment.type === 'dose'
+                ? diagnosis.primaryAdjustment.direction === 'increase'
+                  ? '⚖️ Increase Dose (+0.5g)'
+                  : '⚖️ Decrease Dose (-0.5g)'
+                : `${diagnosis.primaryAdjustment.type}`}
+            </Text>
+            <Text style={styles.diagnosisMagnitude}>
+              {diagnosis.primaryAdjustment.magnitude} adjustment
+            </Text>
+            <Text style={styles.diagnosisExplanation}>{diagnosis.explanation}</Text>
+            
+            {diagnosis.secondaryAdjustment && (
+              <View style={styles.secondaryAdjustment}>
+                <Text style={styles.secondaryLabel}>Also consider:</Text>
+                <Text style={styles.secondaryAction}>
+                  {diagnosis.secondaryAdjustment.reason}
+                </Text>
+              </View>
+            )}
+          </Card>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button
-          title="Back"
-          onPress={handleBack}
-          variant="outline"
-          style={styles.backButton}
-        />
-        <Button
-          title={isLastStep ? 'Save & Finish' : 'Next'}
-          onPress={handleNext}
-          style={styles.nextButton}
-          fullWidth={currentStep === 0}
-        />
+        {showDiagnosis && diagnosis ? (
+          <>
+            <Button
+              title="Try Again"
+              onPress={applyDiagnosisAndRetry}
+              variant="outline"
+              style={styles.backButton}
+            />
+            <Button
+              title="Save Anyway"
+              onPress={handleSave}
+              style={styles.nextButton}
+            />
+          </>
+        ) : (
+          <>
+            <Button
+              title="Back"
+              onPress={handleBack}
+              variant="outline"
+              style={styles.backButton}
+            />
+            <Button
+              title={isLastStep ? (tasteProfile === 'balanced' ? 'Save & Finish 🎉' : 'Save & Finish') : 'Next'}
+              onPress={handleNext}
+              style={styles.nextButton}
+              fullWidth={currentStep === 0}
+            />
+          </>
+        )}
       </View>
     </View>
   );
@@ -532,6 +688,91 @@ const styles = StyleSheet.create({
     ...typography.label,
     color: colors.text,
     marginBottom: spacing.sm,
+  },
+  tasteProfileSection: {
+    marginBottom: spacing.lg,
+  },
+  tasteOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  tasteOption: {
+    width: '48%',
+    padding: spacing.base,
+    borderRadius: borderRadius.card,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.backgroundCard,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  tasteOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '15',
+  },
+  tasteOptionIcon: {
+    fontSize: 32,
+    marginBottom: spacing.xs,
+  },
+  tasteOptionLabel: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  tasteOptionLabelSelected: {
+    color: colors.primary,
+  },
+  tasteOptionDesc: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  diagnosisCard: {
+    marginBottom: spacing.lg,
+    backgroundColor: colors.warning + '15',
+    borderColor: colors.warning,
+    borderWidth: 1,
+  },
+  diagnosisTitle: {
+    ...typography.h4,
+    color: colors.text,
+    marginBottom: spacing.sm,
+    fontWeight: '700',
+  },
+  diagnosisAction: {
+    ...typography.h3,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+    fontWeight: '700',
+  },
+  diagnosisMagnitude: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textTransform: 'capitalize',
+    marginBottom: spacing.sm,
+  },
+  diagnosisExplanation: {
+    ...typography.body,
+    color: colors.text,
+    lineHeight: 22,
+  },
+  secondaryAdjustment: {
+    marginTop: spacing.base,
+    paddingTop: spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  secondaryLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  secondaryAction: {
+    ...typography.bodySmall,
+    color: colors.text,
   },
 });
 

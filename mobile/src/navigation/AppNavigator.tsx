@@ -23,11 +23,15 @@ function MainTabs() {
           backgroundColor: colors.background,
         },
         headerTintColor: colors.text,
-        tabBarActiveTintColor: colors.primary,
+        headerTitleStyle: {
+          fontWeight: '700',
+        },
+        tabBarActiveTintColor: colors.primary, // Crema Orange
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.borderLight,
+          paddingTop: 4,
         },
       }}
     >

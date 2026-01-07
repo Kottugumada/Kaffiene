@@ -5,10 +5,11 @@ import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'destructive';
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  style?: any;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -18,15 +19,18 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   loading = false,
   fullWidth = false,
+  style,
 }) => {
   const buttonStyle = [
     styles.button,
     variant === 'primary' && styles.primary,
     variant === 'secondary' && styles.secondary,
     variant === 'outline' && styles.outline,
+    variant === 'destructive' && styles.destructive,
     disabled && styles.disabled,
     fullWidth && styles.fullWidth,
-    !disabled && shadows.md,
+    !disabled && variant !== 'outline' && shadows.md,
+    style,
   ];
 
   const textStyle = [
@@ -34,7 +38,10 @@ export const Button: React.FC<ButtonProps> = ({
     variant === 'primary' && styles.primaryText,
     variant === 'secondary' && styles.secondaryText,
     variant === 'outline' && styles.outlineText,
+    variant === 'destructive' && styles.destructiveText,
   ];
+
+  const loaderColor = variant === 'outline' ? colors.primary : colors.textInverse;
 
   return (
     <TouchableOpacity
@@ -44,7 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? colors.primary : colors.textInverse} />
+        <ActivityIndicator color={loaderColor} />
       ) : (
         <Text style={textStyle}>{title}</Text>
       )}
@@ -54,25 +61,30 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: spacing.md + 2,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 4,
+    paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.button,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: spacing.buttonHeight,
   },
+  // Primary - Crema Orange (CTA)
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary, // #E46A2E
   },
+  // Secondary - Roasted Cocoa
   secondary: {
-    backgroundColor: colors.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.secondary, // #5A2D24
   },
+  // Outline - Transparent with border
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: colors.primary,
+  },
+  // Destructive - Red
+  destructive: {
+    backgroundColor: colors.error, // #C23A2B
   },
   disabled: {
     opacity: 0.5,
@@ -82,17 +94,20 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.label,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   primaryText: {
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
   secondaryText: {
-    color: colors.text,
+    color: '#FFFFFF',
   },
   outlineText: {
     color: colors.primary,
   },
+  destructiveText: {
+    color: '#FFFFFF',
+  },
 });
-
