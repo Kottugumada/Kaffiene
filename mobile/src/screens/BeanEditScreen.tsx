@@ -8,8 +8,8 @@ import { Bean, RoastLevel } from '../types';
 
 export function BeanEditScreen() {
   const route = useRoute<any>();
-  const navigation = useNavigation();
-  const { beanId } = route.params || {};
+  const navigation = useNavigation<any>();
+  const { beanId, showDialIn } = route.params || {};
   const { beans, addBean, updateBean, loadBeans } = useBeanStore();
 
   const [name, setName] = useState('');
@@ -29,7 +29,11 @@ export function BeanEditScreen() {
         setNotes(bean.notes || '');
       }
     }
-  }, [beanId, beans]);
+    // Load beans if not already loaded
+    if (beans.length === 0) {
+      loadBeans();
+    }
+  }, [beanId, beans, loadBeans]);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -37,28 +41,47 @@ export function BeanEditScreen() {
     }
 
     try {
+      let savedBeanId: string;
+      
       if (beanId) {
         const bean = beans.find((b) => b.id === beanId);
         if (bean) {
-          await updateBean({
+          const updatedBean = {
             ...bean,
             name,
             roastLevel,
             origin: origin || undefined,
             processingMethod: processingMethod || undefined,
             notes: notes || undefined,
-          });
+            // If it was a seed bean, mark it as user bean after editing
+            isSeedData: false,
+          };
+          await updateBean(updatedBean);
+          savedBeanId = updatedBean.id;
+        } else {
+          return;
         }
       } else {
-        await addBean({
+        const newBean = await addBean({
           name,
           roastLevel,
           origin: origin || undefined,
           processingMethod: processingMethod || undefined,
           notes: notes || undefined,
         });
+        savedBeanId = newBean.id;
       }
-      navigation.goBack();
+      
+      // Reload beans to get updated state
+      await loadBeans();
+      
+      // If showDialIn is true, navigate to guided dial-in after saving
+      if (showDialIn) {
+        // Replace current screen with GuidedDialIn to prevent going back
+        navigation.replace('GuidedDialIn', { beanId: savedBeanId });
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       console.error('Error saving bean:', error);
     }
@@ -122,7 +145,11 @@ export function BeanEditScreen() {
         multiline
       />
 
-      <Button title="Save Bean" onPress={handleSave} fullWidth />
+      <Button 
+        title={showDialIn ? "Save & Start Dial-In" : "Save Bean"} 
+        onPress={handleSave} 
+        fullWidth 
+      />
     </ScrollView>
   );
 }

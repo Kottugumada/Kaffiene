@@ -59,7 +59,7 @@ export class BeanRepository {
     };
 
     await db.runAsync(
-      `UPDATE beans SET name = ?, roastLevel = ?, origin = ?, processingMethod = ?, notes = ?, updatedAt = ?
+      `UPDATE beans SET name = ?, roastLevel = ?, origin = ?, processingMethod = ?, notes = ?, isSeedData = ?, updatedAt = ?
        WHERE id = ?`,
       [
         updatedBean.name,
@@ -67,6 +67,7 @@ export class BeanRepository {
         updatedBean.origin || null,
         updatedBean.processingMethod || null,
         updatedBean.notes || null,
+        updatedBean.isSeedData ? 1 : 0,
         updatedBean.updatedAt,
         updatedBean.id,
       ]

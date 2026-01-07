@@ -20,7 +20,16 @@ export function BeanListScreen() {
     <Card
       onPress={() => {
         if (showDialIn) {
-          navigation.navigate('GuidedDialIn', { beanId: item.id });
+          // If seed bean, save it first, then go to dial-in
+          if (item.isSeedData) {
+            navigation.navigate('BeanEdit', { 
+              beanId: item.id, 
+              showDialIn: true 
+            });
+          } else {
+            // Already a user bean, go directly to dial-in
+            navigation.navigate('GuidedDialIn', { beanId: item.id });
+          }
         } else {
           navigation.navigate('BeanEdit', { beanId: item.id });
         }
@@ -29,8 +38,11 @@ export function BeanListScreen() {
     >
       <Text style={styles.beanName}>{item.name}</Text>
       <Text style={styles.beanDetails}>
-        {item.roastLevel} roast{item.origin ? ` • ${item.origin}` : ''}
+        {item.roastLevel} roast{item.origin ? ` • ${item.origin}` : null}
       </Text>
+      {item.isSeedData && showDialIn && (
+        <Text style={styles.seedHint}>Tap to save and dial in</Text>
+      )}
     </Card>
   );
 
@@ -91,6 +103,12 @@ const styles = StyleSheet.create({
   beanDetails: {
     ...typography.bodySmall,
     color: colors.textSecondary,
+  },
+  seedHint: {
+    ...typography.caption,
+    color: colors.primary,
+    marginTop: spacing.xs,
+    fontStyle: 'italic',
   },
   emptyState: {
     flex: 1,

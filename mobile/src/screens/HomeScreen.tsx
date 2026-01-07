@@ -80,7 +80,7 @@ export function HomeScreen() {
               </Text>
               {log.rating && (
                 <Text style={styles.shotRating}>
-                  {'⭐'.repeat(log.rating)}{'☆'.repeat(5 - log.rating)}
+                  {`${'⭐'.repeat(log.rating)}${'☆'.repeat(5 - log.rating)}`}
                 </Text>
               )}
             </Card>

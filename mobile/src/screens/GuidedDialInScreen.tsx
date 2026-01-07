@@ -6,7 +6,7 @@ import { useBrewLogStore, useBeanStore } from '../store';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 import { EspressoParameters, BrewMethod } from '../types';
 import { calculateYield, calculateRatio } from '../utils/units';
-import { getRecommendedParameters } from '../services/seedDataService';
+import { getRecommendedParameters, getMatchingRecipes } from '../services/seedDataService';
 
 interface DialInStep {
   id: number;
@@ -90,6 +90,14 @@ const DIAL_IN_STEPS: DialInStep[] = [
     showTaste: true,
     allowNext: true,
   },
+  {
+    id: 9,
+    title: 'How Was Your Shot?',
+    content: 'Tell us about your final shot:\n\n• Rate the shot\n• Add any tasting notes\n• This helps us learn and improve recommendations',
+    showParameters: false,
+    showTaste: true,
+    allowNext: true,
+  },
 ];
 
 export function GuidedDialInScreen() {
@@ -110,6 +118,8 @@ export function GuidedDialInScreen() {
   const [tasteNotes, setTasteNotes] = useState('');
   const [selectedRatio, setSelectedRatio] = useState('1:2');
 
+  const selectedBean = beans.find((b) => b.id === beanId);
+
   useEffect(() => {
     loadBeans();
   }, []);
@@ -126,10 +136,19 @@ export function GuidedDialInScreen() {
       setSelectedRatio(`1:${recommended.ratio}`);
     }
   }, [selectedBean, currentStep]);
-
-  const selectedBean = beans.find((b) => b.id === beanId);
+  
   const step = DIAL_IN_STEPS[currentStep];
   const isLastStep = currentStep === DIAL_IN_STEPS.length - 1;
+  
+  // Compute recommended recipe for step 1
+  let recommendedRecipe: { recipe: any; params: any } | null = null;
+  if (selectedBean && currentStep === 1) {
+    const matchingRecipes = getMatchingRecipes(selectedBean);
+    const recommended = getRecommendedParameters(selectedBean);
+    if (matchingRecipes.length > 0) {
+      recommendedRecipe = { recipe: matchingRecipes[0], params: recommended };
+    }
+  }
 
   const handleDoseChange = (value: string) => {
     setDose(value);
@@ -151,9 +170,10 @@ export function GuidedDialInScreen() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLastStep) {
-      handleSave();
+      // On the very last step (taste feedback), save and finish
+      await handleSave();
     } else {
       setCurrentStep(currentStep + 1);
     }
@@ -190,7 +210,8 @@ export function GuidedDialInScreen() {
         rating: rating > 0 ? rating : undefined,
         tasteNotes: tasteNotes || undefined,
       });
-      navigation.goBack();
+      // Navigate back to home after saving
+      navigation.navigate('MainTabs', { screen: 'Home' });
     } catch (error) {
       console.error('Error saving shot:', error);
     }
@@ -219,8 +240,17 @@ export function GuidedDialInScreen() {
           <Card style={styles.beanCard}>
             <Text style={styles.beanName}>{selectedBean.name}</Text>
             <Text style={styles.beanDetails}>
-              {selectedBean.roastLevel} roast{selectedBean.origin ? ` • ${selectedBean.origin}` : ''}
+              {selectedBean.roastLevel} roast{selectedBean.origin ? ` • ${selectedBean.origin}` : null}
             </Text>
+            {recommendedRecipe && (
+              <View style={styles.recipeCard}>
+                <Text style={styles.recipeLabel}>Recommended Recipe:</Text>
+                <Text style={styles.recipeName}>{recommendedRecipe.recipe.name}</Text>
+                <Text style={styles.recipeDetails}>
+                  {recommendedRecipe.params.dose}g in → {recommendedRecipe.params.yield}g out • {recommendedRecipe.params.time}s • {recommendedRecipe.params.temperature}°C
+                </Text>
+              </View>
+            )}
           </Card>
         )}
 
@@ -412,6 +442,28 @@ const styles = StyleSheet.create({
   beanDetails: {
     ...typography.bodySmall,
     color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  recipeCard: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: borderRadius.card,
+  },
+  recipeLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  recipeName: {
+    ...typography.h4,
+    color: colors.primary,
+    fontWeight: '600',
+    marginBottom: spacing.xs,
+  },
+  recipeDetails: {
+    ...typography.bodySmall,
+    color: colors.text,
   },
   parametersSection: {
     marginBottom: spacing.lg,

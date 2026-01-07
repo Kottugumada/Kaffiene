@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ViewStyle, Text } from 'react-native';
 import { colors, spacing, shadows, borderRadius } from '../theme';
 
 interface CardProps {
@@ -19,13 +19,22 @@ export const Card: React.FC<CardProps> = ({ children, onPress, style, variant = 
     style,
   ];
 
+  // Wrap primitive children (string, number) in Text component for React Native compatibility
+  // Use React.Children.map to properly handle arrays and fragments
+  const wrappedChildren = React.Children.map(children, (child) => {
+    if (typeof child === 'string' || typeof child === 'number') {
+      return <Text>{child}</Text>;
+    }
+    return child;
+  });
+
   return (
     <Container
       style={cardStyle}
       onPress={onPress}
       activeOpacity={onPress ? 0.85 : 1}
     >
-      {children}
+      {wrappedChildren}
     </Container>
   );
 };

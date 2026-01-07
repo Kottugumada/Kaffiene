@@ -24,7 +24,7 @@ export function ProgressScreen() {
         </Text>
         {item.rating && (
           <Text style={styles.logRating}>
-            {'⭐'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}
+            {`${'⭐'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}`}
           </Text>
         )}
         <Text style={styles.logDate}>
