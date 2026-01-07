@@ -138,12 +138,13 @@ export async function buildUserProfile(userId: string, logs: BrewLog[], beans: B
   // Calculate successful shots stats
   if (successfulShots.length > 0) {
     const successfulRatings = successfulShots.map((s) => s.rating || 0);
+    const bestParams = successfulShots[0]?.parameters as any;
     profile.successfulShots = {
       total: successfulShots.length,
       avgRating: successfulRatings.reduce((a, b) => a + b, 0) / successfulRatings.length,
-      bestRatio: successfulShots[0]?.parameters.ratio || 2.0,
-      bestDose: successfulShots[0]?.parameters.dose || 18,
-      bestTemperature: successfulShots[0]?.parameters.temperature || 93,
+      bestRatio: bestParams?.ratio || 2.0,
+      bestDose: bestParams?.dose || 18,
+      bestTemperature: bestParams?.temperature || 93,
     };
   }
 

@@ -99,6 +99,7 @@ export interface BrewLog {
   equipment?: string;
   notes?: string;
   troubleshootingSessionId?: string;
+  images?: string[]; // Array of local file URIs
 }
 
 export interface UserPreferences {

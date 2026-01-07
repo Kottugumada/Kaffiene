@@ -111,7 +111,7 @@ export function TroubleshootScreen() {
 
         <Button
           title="Apply to Next Shot"
-          onPress={() => navigation.navigate('ShotLog')}
+          onPress={() => (navigation as any).navigate('ShotLog')}
           fullWidth
         />
         <Button
@@ -145,7 +145,7 @@ export function TroubleshootScreen() {
             onPress={() => handleAnswer(currentQ.id, option.value)}
             style={styles.optionCard}
           >
-            {option.icon && <Text style={styles.optionIcon}>{option.icon}</Text>}
+            {'icon' in option && option.icon && <Text style={styles.optionIcon}>{option.icon}</Text>}
             <View style={styles.optionContent}>
               <Text style={styles.optionLabel}>{option.label}</Text>
               {option.description && (

@@ -1,5 +1,5 @@
 // SQLite Schema Definitions
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const CREATE_TABLES = {
   beans: `
@@ -30,6 +30,7 @@ export const CREATE_TABLES = {
       equipment TEXT,
       notes TEXT,
       troubleshootingSessionId TEXT,
+      images TEXT,
       FOREIGN KEY (beanId) REFERENCES beans(id) ON DELETE CASCADE,
       FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE SET NULL
     );

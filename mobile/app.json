@@ -4,13 +4,13 @@
     "slug": "kaffiene",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Kaffiene-logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Kaffiene-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4A2C17"
+      "backgroundColor": "#2A1412"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,8 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#4A2C17"
+        "foregroundImage": "./assets/Kaffiene-logo.png",
+        "backgroundColor": "#2A1412"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

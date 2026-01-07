@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Input, Button, StarRating, Slider } from '../components';
+import { Input, Button, StarRating, Slider, ImagePickerButton } from '../components';
 import { useBrewLogStore, useBeanStore, useUserPreferencesStore } from '../store';
 import { colors, spacing, typography } from '../theme';
 import { EspressoParameters, BrewMethod } from '../types';
@@ -25,6 +25,7 @@ export function ShotLogScreen() {
   const [temperature, setTemperature] = useState('92');
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState('');
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     loadBeans();
@@ -68,6 +69,7 @@ export function ShotLogScreen() {
         parameters,
         rating: rating > 0 ? rating : undefined,
         tasteNotes: notes || undefined,
+        images: images.length > 0 ? images : undefined,
       });
       navigation.goBack();
     } catch (error) {
@@ -209,6 +211,12 @@ export function ShotLogScreen() {
         onChangeText={setNotes}
         placeholder="How did it taste?"
         multiline
+      />
+
+      <ImagePickerButton
+        images={images}
+        onImagesChange={setImages}
+        maxImages={4}
       />
 
       <Button title="Save Shot" onPress={handleSave} fullWidth />

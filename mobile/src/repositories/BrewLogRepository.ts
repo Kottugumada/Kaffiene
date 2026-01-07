@@ -51,8 +51,8 @@ export class BrewLogRepository {
     };
 
     await db.runAsync(
-      `INSERT INTO brew_logs (id, beanId, brewMethod, recipeId, timestamp, parameters, rating, tasteNotes, structuredTaste, equipment, notes, troubleshootingSessionId)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO brew_logs (id, beanId, brewMethod, recipeId, timestamp, parameters, rating, tasteNotes, structuredTaste, equipment, notes, troubleshootingSessionId, images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         newLog.id,
         newLog.beanId,
@@ -66,6 +66,7 @@ export class BrewLogRepository {
         newLog.equipment || null,
         newLog.notes || null,
         newLog.troubleshootingSessionId || null,
+        newLog.images ? JSON.stringify(newLog.images) : null,
       ]
     );
 
@@ -76,7 +77,7 @@ export class BrewLogRepository {
     const db = await getDatabase();
 
     await db.runAsync(
-      `UPDATE brew_logs SET beanId = ?, brewMethod = ?, recipeId = ?, parameters = ?, rating = ?, tasteNotes = ?, structuredTaste = ?, equipment = ?, notes = ?, troubleshootingSessionId = ?
+      `UPDATE brew_logs SET beanId = ?, brewMethod = ?, recipeId = ?, parameters = ?, rating = ?, tasteNotes = ?, structuredTaste = ?, equipment = ?, notes = ?, troubleshootingSessionId = ?, images = ?
        WHERE id = ?`,
       [
         brewLog.beanId,
@@ -89,6 +90,7 @@ export class BrewLogRepository {
         brewLog.equipment || null,
         brewLog.notes || null,
         brewLog.troubleshootingSessionId || null,
+        brewLog.images ? JSON.stringify(brewLog.images) : null,
         brewLog.id,
       ]
     );
@@ -106,6 +108,7 @@ export class BrewLogRepository {
       ...row,
       parameters: JSON.parse(row.parameters) as BrewParameters,
       structuredTaste: row.structuredTaste ? JSON.parse(row.structuredTaste) : undefined,
+      images: row.images ? JSON.parse(row.images) : undefined,
     };
   }
 }

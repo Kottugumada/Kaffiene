@@ -40,8 +40,8 @@ export function ProgressScreen() {
         <Card style={styles.bestShotCard}>
           <Text style={styles.bestShotLabel}>⭐ Best Shot</Text>
           <Text style={styles.bestShotText}>
-            {bestShot.parameters.dose}g → {bestShot.parameters.yield}ml |{' '}
-            {bestShot.parameters.time}s
+            {(bestShot.parameters as any).dose}g → {(bestShot.parameters as any).yield}ml |{' '}
+            {(bestShot.parameters as any).time}s
           </Text>
           {bestShot.tasteNotes && (
             <Text style={styles.bestShotNotes}>{bestShot.tasteNotes}</Text>

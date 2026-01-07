@@ -24,6 +24,17 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     await db.execAsync(CREATE_INDEXES.beans_name);
     await db.execAsync(CREATE_INDEXES.recipes_brewMethod);
     
+    // Migration v1 -> v2: Add images column to brew_logs
+    if (currentVersion < 2) {
+      try {
+        await db.execAsync('ALTER TABLE brew_logs ADD COLUMN images TEXT');
+        console.log('Added images column to brew_logs');
+      } catch (e) {
+        // Column might already exist, ignore error
+        console.log('Images column may already exist');
+      }
+    }
+    
     // Set version
     await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
     

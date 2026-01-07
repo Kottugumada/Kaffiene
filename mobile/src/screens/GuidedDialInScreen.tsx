@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Input, Button, StarRating, Slider, Card } from '../components';
+import { Input, Button, StarRating, Slider, Card, ImagePickerButton } from '../components';
 import { useBrewLogStore, useBeanStore } from '../store';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 import { EspressoParameters, BrewMethod, TroubleshootingAnswer, TroubleshootingDiagnosis } from '../types';
@@ -124,6 +124,7 @@ export function GuidedDialInScreen() {
   const [tasteProfile, setTasteProfile] = useState<'sour' | 'bitter' | 'balanced' | 'weak' | null>(null);
   const [diagnosis, setDiagnosis] = useState<TroubleshootingDiagnosis | null>(null);
   const [showDiagnosis, setShowDiagnosis] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
   const selectedBean = beans.find((b) => b.id === beanId);
 
@@ -281,6 +282,7 @@ export function GuidedDialInScreen() {
         parameters,
         rating: rating > 0 ? rating : undefined,
         tasteNotes: tasteNotes || undefined,
+        images: images.length > 0 ? images : undefined,
       });
       // Navigate back to home after saving
       navigation.navigate('MainTabs', { screen: 'Home' });
@@ -428,6 +430,13 @@ export function GuidedDialInScreen() {
               placeholder="Sweet, balanced, sour, bitter..."
               multiline
             />
+            {isLastStep && (
+              <ImagePickerButton
+                images={images}
+                onImagesChange={setImages}
+                maxImages={4}
+              />
+            )}
           </View>
         )}
 
