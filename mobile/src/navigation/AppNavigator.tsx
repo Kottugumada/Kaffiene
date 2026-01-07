@@ -36,6 +36,7 @@ function MainTabs() {
         component={HomeScreen}
         options={{
           title: 'Kaffiene',
+          headerTitle: 'Kaffiene',
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🏠</Text>,
         }}
