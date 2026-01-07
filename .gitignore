@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+mobile/node_modules/
+
+# Expo
+.expo/
+mobile/.expo/
+dist/
+mobile/dist/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Local env files
+.env*.local
+mobile/.env*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+mobile/*.db
+mobile/*.db-shm
+mobile/*.db-wal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
