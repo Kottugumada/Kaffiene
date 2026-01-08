@@ -139,6 +139,36 @@ export const BREW_METHODS: Record<BrewMethodId, BrewMethodInfo> = {
     gradient: ['#1A2A1A', '#2A3A2A', '#3A4A3A'] as const,
     accentColor: '#66BB6A',
   },
+  indian_filter: {
+    id: 'indian_filter',
+    name: 'Indian Filter',
+    category: 'drip',
+    icon: '🇮🇳',
+    description: 'Traditional South Indian gravity-drip brewing producing strong, concentrated decoction mixed with hot milk.',
+    difficulty: 'beginner',
+    brewTimeRange: { min: 600, max: 1200 }, // 10-20 minutes
+    defaultRatio: 6.0, // Coffee:Water for decoction
+    grindSize: 'fine',
+    temperatureRange: { min: 95, max: 100 },
+    equipment: ['South Indian Filter', 'Tumbler & Dabarah', 'Kettle'],
+    gradient: ['#8B4513', '#A0522D', '#CD853F'] as const, // Warm brown/copper tones
+    accentColor: '#FF8C00', // Deep orange/saffron
+  },
+  cold_brew: {
+    id: 'cold_brew',
+    name: 'Cold Brew',
+    category: 'immersion',
+    icon: '🧊',
+    description: 'Smooth, sweet coffee steeped in cold water for 12-24 hours. Very low acidity, naturally less bitter.',
+    difficulty: 'beginner',
+    brewTimeRange: { min: 43200, max: 86400 }, // 12-24 hours in seconds
+    defaultRatio: 6.0, // Concentrate ratio
+    grindSize: 'coarse',
+    temperatureRange: { min: 4, max: 20 }, // Cold to room temp
+    equipment: ['Large Jar/Pitcher', 'Fine Mesh Filter', 'Paper Filter (optional)'],
+    gradient: ['#1A3A4A', '#2A4A5A', '#3A5A6A'] as const, // Cool blue tones
+    accentColor: '#4DD0E1', // Cyan/ice blue
+  },
 };
 
 // Get brew methods by category
@@ -153,13 +183,16 @@ export function getAllBrewMethods(): BrewMethodInfo[] {
 
 // Get featured brew methods for home screen
 export function getFeaturedBrewMethods(): BrewMethodInfo[] {
-  // Return main methods, not variants
+  // Return main methods (espresso shown separately at top)
+  // 7 methods total: espresso + 6 in grid (3x2 perfect layout)
   return [
     BREW_METHODS.espresso,
     BREW_METHODS.pour_over,
+    BREW_METHODS.indian_filter,
+    BREW_METHODS.cold_brew,
     BREW_METHODS.turkish,
-    BREW_METHODS.drip,
     BREW_METHODS.french_press,
+    BREW_METHODS.drip,
   ];
 }
 

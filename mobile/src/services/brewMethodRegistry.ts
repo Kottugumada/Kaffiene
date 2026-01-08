@@ -1,4 +1,4 @@
-import { BrewMethod, BrewMethodId, BrewParameters, EspressoParameters, PourOverParameters, FilterCoffeeParameters, TurkishCoffeeParameters } from '../types';
+import { BrewMethod, BrewMethodId, BrewParameters, EspressoParameters, PourOverParameters, FilterCoffeeParameters, TurkishCoffeeParameters, IndianFilterParameters, ColdBrewParameters } from '../types';
 import { RatioDefinition, CANONICAL_RATIOS } from '../types';
 
 export interface BrewMethodDefinition {
@@ -93,6 +93,52 @@ const immersionRules: RecommendationRule[] = [
   },
 ];
 
+const indianFilterRules: RecommendationRule[] = [
+  {
+    condition: 'decoction === weak',
+    suggestion: 'use_finer_grind',
+    priority: 1,
+  },
+  {
+    condition: 'drip_too_fast',
+    suggestion: 'tamp_firmer',
+    priority: 1,
+  },
+  {
+    condition: 'drip_too_slow',
+    suggestion: 'use_coarser_grind',
+    priority: 2,
+  },
+  {
+    condition: 'taste === bitter',
+    suggestion: 'reduce_chicory',
+    priority: 1,
+  },
+];
+
+const coldBrewRules: RecommendationRule[] = [
+  {
+    condition: 'taste === bitter',
+    suggestion: 'use_coarser_grind',
+    priority: 1,
+  },
+  {
+    condition: 'taste === weak',
+    suggestion: 'increase_steep_time',
+    priority: 1,
+  },
+  {
+    condition: 'taste === sour',
+    suggestion: 'steep_longer',
+    priority: 1,
+  },
+  {
+    condition: 'too_strong',
+    suggestion: 'dilute_more',
+    priority: 2,
+  },
+];
+
 // ============================================
 // Default Recipes
 // ============================================
@@ -166,6 +212,26 @@ const chemexDefault: PourOverParameters = {
   temperature: 94,
   totalTime: 270,
   ratio: 16.7,
+};
+
+const indianFilterDefault: IndianFilterParameters = {
+  coffee: 20,
+  water: 120,
+  grind: 65,
+  temperature: 96,
+  brewTime: 900, // 15 minutes
+  chicoryPercent: 15,
+  ratio: 6.0,
+};
+
+const coldBrewDefault: ColdBrewParameters = {
+  coffee: 100,
+  water: 600,
+  grind: 15, // Extra coarse
+  temperature: 20,
+  brewTime: 64800, // 18 hours
+  ratio: 6.0,
+  style: 'concentrate',
 };
 
 // ============================================
@@ -368,6 +434,55 @@ export const brewMethodRegistry: Map<BrewMethodId, BrewMethodDefinition> = new M
       },
       defaultRecipe: frenchPressDefault,
       recommendationRules: immersionRules,
+      defaultRatios: [],
+    },
+  ],
+  [
+    'indian_filter',
+    {
+      id: 'indian_filter',
+      name: 'Indian Filter Coffee',
+      parameterSchema: {
+        required: ['coffee', 'water', 'grind', 'temperature', 'brewTime'],
+        properties: {
+          coffee: { type: 'number', min: 0 },
+          water: { type: 'number', min: 0 },
+          grind: { type: 'number', min: 0, max: 100 },
+          temperature: { type: 'number', min: 90, max: 100 },
+          brewTime: { type: 'number', min: 0 },
+          chicoryPercent: { type: 'number', min: 0, max: 30 },
+          ratio: { type: 'number', calculated: true },
+          decoction: { type: 'number', min: 0 },
+          milk: { type: 'number', min: 0 },
+          sugar: { type: 'number', min: 0, max: 4 },
+        },
+      },
+      defaultRecipe: indianFilterDefault,
+      recommendationRules: indianFilterRules,
+      defaultRatios: [],
+    },
+  ],
+  [
+    'cold_brew',
+    {
+      id: 'cold_brew',
+      name: 'Cold Brew',
+      parameterSchema: {
+        required: ['coffee', 'water', 'grind', 'brewTime'],
+        properties: {
+          coffee: { type: 'number', min: 0 },
+          water: { type: 'number', min: 0 },
+          grind: { type: 'number', min: 0, max: 100 },
+          temperature: { type: 'number', min: 0, max: 25 },
+          brewTime: { type: 'number', min: 0 },
+          ratio: { type: 'number', calculated: true },
+          style: { type: 'string', enum: ['concentrate', 'ready_to_drink'] },
+          dilutionRatio: { type: 'number', min: 0 },
+          milkType: { type: 'string' },
+        },
+      },
+      defaultRecipe: coldBrewDefault,
+      recommendationRules: coldBrewRules,
       defaultRatios: [],
     },
   ],

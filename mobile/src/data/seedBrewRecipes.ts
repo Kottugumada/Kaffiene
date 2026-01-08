@@ -2,7 +2,7 @@
 // Default recipes for all brew methods
 
 import { BrewRecipe, BrewMethodId } from '../types';
-import { ESPRESSO_STEPS, POUR_OVER_STEPS, CHEMEX_STEPS, FILTER_COFFEE_STEPS, TURKISH_COFFEE_STEPS, DRIP_COFFEE_STEPS, AEROPRESS_STEPS, FRENCH_PRESS_STEPS } from './seedBrewSteps';
+import { ESPRESSO_STEPS, POUR_OVER_STEPS, CHEMEX_STEPS, FILTER_COFFEE_STEPS, TURKISH_COFFEE_STEPS, DRIP_COFFEE_STEPS, AEROPRESS_STEPS, FRENCH_PRESS_STEPS, INDIAN_FILTER_STEPS, COLD_BREW_STEPS } from './seedBrewSteps';
 
 const now = Date.now();
 
@@ -480,6 +480,315 @@ export const FRENCH_PRESS_RECIPES: BrewRecipe[] = [
 ];
 
 // ============================================
+// Indian Filter Coffee Recipes
+// ============================================
+
+export const INDIAN_FILTER_RECIPES: BrewRecipe[] = [
+  {
+    id: 'indian-filter-traditional',
+    name: 'Traditional Filter Kaapi',
+    methodId: 'indian_filter',
+    description: 'Classic South Indian filter coffee with chicory blend.',
+    coffeeG: 20,
+    waterMl: 120,
+    ratio: 6.0,
+    grindSize: 65, // Fine but coarser than espresso
+    temperatureC: 96,
+    brewTimeSec: 900, // 15 minutes
+    steps: INDIAN_FILTER_STEPS,
+    isDefault: true,
+    tags: ['traditional', 'chicory', 'strong'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'indian-filter-degree',
+    name: 'Degree Coffee',
+    methodId: 'indian_filter',
+    description: 'Premium 100% Arabica without chicory for cleaner taste.',
+    coffeeG: 20,
+    waterMl: 140,
+    ratio: 7.0,
+    grindSize: 60,
+    temperatureC: 96,
+    brewTimeSec: 720, // 12 minutes
+    steps: INDIAN_FILTER_STEPS,
+    isDefault: false,
+    tags: ['premium', 'arabica', 'clean'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'indian-filter-strong',
+    name: 'Extra Strong Decoction',
+    methodId: 'indian_filter',
+    description: 'Concentrated brew for those who like it bold.',
+    coffeeG: 25,
+    waterMl: 120,
+    ratio: 5.0,
+    grindSize: 70,
+    temperatureC: 98,
+    brewTimeSec: 1200, // 20 minutes
+    steps: [
+      {
+        order: 1,
+        title: 'Add Coffee',
+        description: 'Add extra-fine ground coffee to upper chamber.',
+        tips: ['Use 25g for stronger decoction', 'Add 20-30% chicory for bold flavor'],
+      },
+      {
+        order: 2,
+        title: 'Tamp Firmly',
+        description: 'Press the disc down with slightly more pressure.',
+        tips: ['Firmer tamp = slower drip = stronger extraction'],
+      },
+      {
+        order: 3,
+        title: 'Add Hot Water',
+        description: 'Pour water just off the boil.',
+        target: { waterG: 120, tempC: 98 },
+      },
+      {
+        order: 4,
+        title: 'Extended Brew',
+        description: 'Allow full 20 minutes for maximum extraction.',
+        durationSec: 1200,
+        tips: ['Slower is stronger', 'Be patient!'],
+      },
+      {
+        order: 5,
+        title: 'Collect & Serve',
+        description: 'Mix with hot milk at 1:2 ratio.',
+        tips: ['This decoction is very strong - adjust milk to taste'],
+      },
+    ],
+    isDefault: false,
+    tags: ['strong', 'bold', 'concentrated'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'indian-filter-black',
+    name: 'Black Filter Coffee',
+    methodId: 'indian_filter',
+    description: 'Decoction diluted with hot water instead of milk.',
+    coffeeG: 15,
+    waterMl: 100,
+    ratio: 6.7,
+    grindSize: 60,
+    temperatureC: 96,
+    brewTimeSec: 600, // 10 minutes
+    steps: [
+      {
+        order: 1,
+        title: 'Add Coffee',
+        description: 'Use 100% Arabica, no chicory.',
+        tips: ['Chicory is better with milk'],
+      },
+      {
+        order: 2,
+        title: 'Light Tamp',
+        description: 'Place disc without pressing hard.',
+      },
+      {
+        order: 3,
+        title: 'Add Hot Water',
+        description: 'Pour hot water over disc.',
+        target: { waterG: 100, tempC: 96 },
+      },
+      {
+        order: 4,
+        title: 'Brew',
+        description: 'Wait for decoction to collect.',
+        durationSec: 600,
+      },
+      {
+        order: 5,
+        title: 'Dilute & Serve',
+        description: 'Add hot water to decoction (1:1 or to taste).',
+        tips: ['No milk - enjoy the pure coffee flavor'],
+      },
+    ],
+    isDefault: false,
+    tags: ['black', 'no-milk', 'pure'],
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+// ============================================
+// Cold Brew Recipes
+// ============================================
+
+export const COLD_BREW_RECIPES: BrewRecipe[] = [
+  {
+    id: 'cold-brew-concentrate',
+    name: 'Classic Concentrate',
+    methodId: 'cold_brew',
+    description: 'Strong concentrate to dilute with water or milk. Smooth and chocolatey.',
+    coffeeG: 100,
+    waterMl: 600,
+    ratio: 6.0,
+    grindSize: 15, // Extra coarse
+    temperatureC: 20,
+    brewTimeSec: 64800, // 18 hours
+    steps: COLD_BREW_STEPS,
+    isDefault: true,
+    tags: ['concentrate', 'smooth', 'versatile'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'cold-brew-rtd',
+    name: 'Ready-to-Drink',
+    methodId: 'cold_brew',
+    description: 'Lighter brew ready to drink without dilution.',
+    coffeeG: 80,
+    waterMl: 1000,
+    ratio: 12.5,
+    grindSize: 15,
+    temperatureC: 20,
+    brewTimeSec: 57600, // 16 hours
+    steps: [
+      {
+        order: 1,
+        title: 'Grind Coffee',
+        description: 'Grind coffee extra coarse.',
+        tips: ['Slightly finer than concentrate for balanced extraction'],
+      },
+      {
+        order: 2,
+        title: 'Combine',
+        description: 'Add coffee and room-temperature water.',
+        target: { waterG: 1000 },
+      },
+      {
+        order: 3,
+        title: 'Stir',
+        description: 'Ensure all grounds are saturated.',
+      },
+      {
+        order: 4,
+        title: 'Steep',
+        description: 'Refrigerate for 16 hours.',
+        durationSec: 57600,
+        tips: ['Fridge brewing = cleaner, brighter flavor'],
+      },
+      {
+        order: 5,
+        title: 'Filter & Serve',
+        description: 'Filter and serve over ice.',
+        tips: ['No dilution needed - ready to drink!'],
+      },
+    ],
+    isDefault: false,
+    tags: ['ready-to-drink', 'refreshing', 'light'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'cold-brew-strong',
+    name: 'Extra Strong',
+    methodId: 'cold_brew',
+    description: 'Bold, intense concentrate for coffee lovers.',
+    coffeeG: 120,
+    waterMl: 500,
+    ratio: 4.2,
+    grindSize: 18,
+    temperatureC: 20,
+    brewTimeSec: 86400, // 24 hours
+    steps: [
+      {
+        order: 1,
+        title: 'Grind Coffee',
+        description: 'Grind 120g coffee extra coarse.',
+      },
+      {
+        order: 2,
+        title: 'Combine',
+        description: 'Add coffee and 500ml water.',
+        target: { waterG: 500 },
+      },
+      {
+        order: 3,
+        title: 'Stir Well',
+        description: 'Ensure complete saturation.',
+      },
+      {
+        order: 4,
+        title: 'Long Steep',
+        description: 'Steep for full 24 hours.',
+        durationSec: 86400,
+        tips: ['Maximum extraction time for boldest flavor'],
+      },
+      {
+        order: 5,
+        title: 'Filter',
+        description: 'Double filter for clarity.',
+      },
+      {
+        order: 6,
+        title: 'Dilute & Serve',
+        description: 'Dilute 1:2 or 1:3 - this is very strong!',
+        tips: ['Start with more water, adjust to taste'],
+      },
+    ],
+    isDefault: false,
+    tags: ['strong', 'bold', 'intense'],
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'cold-brew-overnight',
+    name: 'Quick Overnight',
+    methodId: 'cold_brew',
+    description: 'Faster 12-hour brew for next-day coffee.',
+    coffeeG: 100,
+    waterMl: 700,
+    ratio: 7.0,
+    grindSize: 12, // Slightly finer for faster extraction
+    temperatureC: 20,
+    brewTimeSec: 43200, // 12 hours
+    steps: [
+      {
+        order: 1,
+        title: 'Grind Coffee',
+        description: 'Grind slightly finer than usual cold brew.',
+        tips: ['Finer grind = faster extraction'],
+      },
+      {
+        order: 2,
+        title: 'Combine',
+        description: 'Mix coffee and water before bed.',
+        target: { waterG: 700 },
+      },
+      {
+        order: 3,
+        title: 'Stir',
+        description: 'Stir thoroughly.',
+      },
+      {
+        order: 4,
+        title: 'Overnight Steep',
+        description: 'Leave at room temp or fridge overnight.',
+        durationSec: 43200,
+        tips: ['Perfect for making before bed'],
+      },
+      {
+        order: 5,
+        title: 'Morning Filter',
+        description: 'Filter and enjoy with breakfast.',
+        tips: ['Dilute 1:1 for balanced strength'],
+      },
+    ],
+    isDefault: false,
+    tags: ['quick', 'overnight', 'convenient'],
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+// ============================================
 // All Recipes Registry
 // ============================================
 
@@ -492,6 +801,8 @@ export const ALL_BREW_RECIPES: BrewRecipe[] = [
   ...DRIP_RECIPES,
   ...AEROPRESS_RECIPES,
   ...FRENCH_PRESS_RECIPES,
+  ...INDIAN_FILTER_RECIPES,
+  ...COLD_BREW_RECIPES,
 ];
 
 // Get recipes by method

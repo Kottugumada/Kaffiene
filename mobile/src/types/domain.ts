@@ -1,7 +1,7 @@
 // Domain Models
 
 export type RoastLevel = 'light' | 'medium' | 'dark' | 'espresso';
-export type BrewMethodId = 'espresso' | 'filter_coffee' | 'turkish' | 'pour_over' | 'chemex' | 'v60' | 'drip' | 'aeropress' | 'french_press';
+export type BrewMethodId = 'espresso' | 'filter_coffee' | 'turkish' | 'pour_over' | 'chemex' | 'v60' | 'drip' | 'aeropress' | 'french_press' | 'indian_filter' | 'cold_brew';
 /** @deprecated Use BrewMethodId instead */
 export type BrewMethod = BrewMethodId;
 export type UIMode = 'beginner' | 'enthusiast';
@@ -123,11 +123,40 @@ export interface TurkishCoffeeParameters {
   brewTime: number; // seconds
 }
 
+export interface IndianFilterParameters {
+  coffee: number; // grams
+  water: number; // ml for decoction
+  grind: number; // 0-100 scale
+  temperature: number; // celsius (95-100)
+  brewTime: number; // seconds (600-1200 for gravity drip)
+  chicoryPercent?: number; // 0-30% traditional
+  ratio: number; // typically 6-8 for decoction
+  // Serving parameters
+  decoction?: number; // ml of concentrated decoction
+  milk?: number; // ml of hot milk
+  sugar?: number; // 0-4 scale
+}
+
+export interface ColdBrewParameters {
+  coffee: number; // grams
+  water: number; // ml
+  grind: number; // 0-100 scale (extra coarse = low number)
+  temperature: number; // celsius (4-20, cold/room temp)
+  brewTime: number; // seconds (12-24 hours = 43200-86400)
+  ratio: number; // 4-8 for concentrate, 10-15 for RTD
+  style: 'concentrate' | 'ready_to_drink';
+  // Serving parameters
+  dilutionRatio?: number; // 1:1, 1:2, 2:1 etc
+  milkType?: string; // oat, almond, whole, none
+}
+
 export type BrewParameters = 
   | EspressoParameters
   | PourOverParameters
   | FilterCoffeeParameters
-  | TurkishCoffeeParameters;
+  | TurkishCoffeeParameters
+  | IndianFilterParameters
+  | ColdBrewParameters;
 
 export interface Recipe {
   id: string;

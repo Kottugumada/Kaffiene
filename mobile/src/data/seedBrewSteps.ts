@@ -323,6 +323,106 @@ export const FRENCH_PRESS_STEPS: BrewStep[] = [
 ];
 
 // ============================================
+// Indian Filter Coffee Steps
+// ============================================
+
+export const INDIAN_FILTER_STEPS: BrewStep[] = [
+  {
+    order: 1,
+    title: 'Add Coffee',
+    description: 'Add finely ground coffee to the upper chamber.',
+    tips: ['Level the bed evenly', 'Use 80-90% Arabica with 10-20% chicory for traditional taste'],
+  },
+  {
+    order: 2,
+    title: 'Tamp Lightly',
+    description: 'Place the pressing disc and gently press down.',
+    tips: ['Do not over-tamp - this is gravity drip, not pressure'],
+  },
+  {
+    order: 3,
+    title: 'Add Hot Water',
+    description: 'Pour hot water over the pressing disc.',
+    target: { waterG: 120, tempC: 96 },
+    tips: ['Use water just off the boil'],
+  },
+  {
+    order: 4,
+    title: 'Cover & Brew',
+    description: 'Cover with lid and allow decoction to drip slowly.',
+    durationSec: 900, // 15 minutes average
+    tips: ['Brew time ranges from 10-20 minutes', 'Patience is key for strong decoction'],
+  },
+  {
+    order: 5,
+    title: 'Collect Decoction',
+    description: 'Check lower chamber for concentrated decoction.',
+    tips: ['Should yield 60-80ml of strong decoction'],
+  },
+  {
+    order: 6,
+    title: 'Mix with Milk',
+    description: 'Add decoction to hot boiled milk.',
+    tips: ['Traditional ratio: 1 part decoction to 2-3 parts milk', 'Add sugar to taste'],
+  },
+  {
+    order: 7,
+    title: 'Pull the Coffee',
+    description: 'Pour between tumbler and dabarah to froth and cool.',
+    tips: ['This creates the signature foam', 'Pour from height for best effect'],
+  },
+];
+
+// ============================================
+// Steps Registry
+// ============================================
+
+// ============================================
+// Cold Brew Steps
+// ============================================
+
+export const COLD_BREW_STEPS: BrewStep[] = [
+  {
+    order: 1,
+    title: 'Grind Coffee',
+    description: 'Grind coffee extra coarse, like sea salt.',
+    tips: ['Too fine causes bitterness and over-extraction'],
+  },
+  {
+    order: 2,
+    title: 'Combine Coffee & Water',
+    description: 'Add coffee and room-temperature water to container.',
+    target: { waterG: 600 },
+    tips: ['Use filtered water for best results'],
+  },
+  {
+    order: 3,
+    title: 'Stir Gently',
+    description: 'Stir to ensure all grounds are fully saturated.',
+    tips: ['No dry clumps should remain'],
+  },
+  {
+    order: 4,
+    title: 'Steep',
+    description: 'Cover and steep at room temperature or refrigerated.',
+    durationSec: 64800, // 18 hours default
+    tips: ['12-16h = smoother, milder', '18-24h = stronger, bolder'],
+  },
+  {
+    order: 5,
+    title: 'Filter',
+    description: 'Filter through fine mesh, then paper filter for clarity.',
+    tips: ['Double filtering removes sediment'],
+  },
+  {
+    order: 6,
+    title: 'Store & Serve',
+    description: 'Refrigerate concentrate. Dilute 1:1 with water or milk.',
+    tips: ['Keeps fresh for 5-7 days', 'Dilute to taste before serving'],
+  },
+];
+
+// ============================================
 // Steps Registry
 // ============================================
 
@@ -336,6 +436,8 @@ export const BREW_STEPS_BY_METHOD: Record<BrewMethodId, BrewStep[]> = {
   drip: DRIP_COFFEE_STEPS,
   aeropress: AEROPRESS_STEPS,
   french_press: FRENCH_PRESS_STEPS,
+  indian_filter: INDIAN_FILTER_STEPS,
+  cold_brew: COLD_BREW_STEPS,
 };
 
 // Get steps for a brew method

@@ -4,7 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Input, Button, StarRating, Slider, ImagePickerButton } from '../components';
 import { useBrewLogStore, useBeanStore, useUserPreferencesStore } from '../store';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { BrewMethodId, BrewParameters, EspressoParameters, FilterCoffeeParameters, PourOverParameters, TurkishCoffeeParameters } from '../types';
+import { BrewMethodId, BrewParameters, EspressoParameters, FilterCoffeeParameters, PourOverParameters, TurkishCoffeeParameters, IndianFilterParameters, ColdBrewParameters } from '../types';
 import { calculateYield, calculateRatio } from '../utils/units';
 import { getBrewMethod, getRecipeById, getRecipesByMethod } from '../data';
 
@@ -42,12 +42,29 @@ const TURKISH_RATIOS = [
   { id: 'light', name: 'Light', ratio: 12.0 },
 ];
 
+const INDIAN_FILTER_RATIOS = [
+  { id: 'strong', name: 'Strong', ratio: 5.0 },
+  { id: 'standard', name: 'Standard', ratio: 6.0 },
+  { id: 'mild', name: 'Mild', ratio: 8.0 },
+];
+
+const COLD_BREW_RATIOS = [
+  { id: 'concentrate', name: 'Concentrate', ratio: 5.0 },
+  { id: 'standard', name: 'Standard', ratio: 6.0 },
+  { id: 'mild', name: 'Mild', ratio: 8.0 },
+  { id: 'rtd', name: 'Ready-to-Drink', ratio: 12.0 },
+];
+
 function getRatiosForMethod(methodId: BrewMethodId) {
   switch (methodId) {
     case 'espresso':
       return ESPRESSO_RATIOS;
     case 'turkish':
       return TURKISH_RATIOS;
+    case 'indian_filter':
+      return INDIAN_FILTER_RATIOS;
+    case 'cold_brew':
+      return COLD_BREW_RATIOS;
     case 'french_press':
     case 'aeropress':
       return IMMERSION_RATIOS;
@@ -224,6 +241,25 @@ export function ShotLogScreen() {
         totalTime: parseFloat(time) || 0,
         ratio: currentRatio,
       } as PourOverParameters;
+    } else if (methodId === 'indian_filter') {
+      parameters = {
+        coffee: parseFloat(coffee) || 0,
+        water: parseFloat(water) || 0,
+        grind,
+        temperature: parseFloat(temperature) || 96,
+        brewTime: parseFloat(time) || 0,
+        ratio: currentRatio,
+      } as IndianFilterParameters;
+    } else if (methodId === 'cold_brew') {
+      parameters = {
+        coffee: parseFloat(coffee) || 0,
+        water: parseFloat(water) || 0,
+        grind,
+        temperature: parseFloat(temperature) || 20,
+        brewTime: parseFloat(time) || 0,
+        ratio: currentRatio,
+        style: currentRatio <= 8 ? 'concentrate' : 'ready_to_drink',
+      } as ColdBrewParameters;
     } else {
       parameters = {
         coffee: parseFloat(coffee) || 0,
