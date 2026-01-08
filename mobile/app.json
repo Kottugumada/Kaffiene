@@ -17,6 +17,10 @@
       "bundleIdentifier": "com.kaffiene.app",
       "displayName": "Kaffiene",
       "buildNumber": "1",
+      "icon": {
+        "source": "./assets/Kaffiene-logo.png",
+        "backgroundColor": "#2A1412"
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "Kaffiene uses the camera to capture photos of your coffee and equipment.",
         "NSPhotoLibraryUsageDescription": "Kaffiene accesses your photo library to save and select coffee images."
