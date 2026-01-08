@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/Kaffiene-logo.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/Kaffiene-logo.png",
@@ -15,18 +15,30 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.kaffiene.app",
-      "displayName": "Kaffiene"
+      "displayName": "Kaffiene",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Kaffiene uses the camera to capture photos of your coffee and equipment.",
+        "NSPhotoLibraryUsageDescription": "Kaffiene accesses your photo library to save and select coffee images."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/Kaffiene-logo.png",
         "backgroundColor": "#2A1412"
       },
+      "package": "com.kaffiene.app",
+      "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
     }
   }
 }

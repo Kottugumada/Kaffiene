@@ -1,12 +1,67 @@
 // Domain Models
 
 export type RoastLevel = 'light' | 'medium' | 'dark' | 'espresso';
-export type BrewMethod = 'espresso' | 'filter_coffee' | 'turkish' | 'pour_over' | 'chemex' | 'v60' | 'drip' | 'aeropress';
+export type BrewMethodId = 'espresso' | 'filter_coffee' | 'turkish' | 'pour_over' | 'chemex' | 'v60' | 'drip' | 'aeropress' | 'french_press';
+/** @deprecated Use BrewMethodId instead */
+export type BrewMethod = BrewMethodId;
 export type UIMode = 'beginner' | 'enthusiast';
 export type Theme = 'light' | 'dark' | 'auto';
 export type CoffeeWeightUnit = 'grams' | 'ounces';
 export type LiquidVolumeUnit = 'ounces' | 'milliliters';
 export type TemperatureUnit = 'celsius' | 'fahrenheit';
+
+// ============================================
+// Brew Method & Recipe Types (V2)
+// ============================================
+
+export type BrewMethodCategory = 'espresso' | 'pour_over' | 'immersion' | 'drip' | 'stovetop';
+
+export interface BrewStep {
+  order: number;
+  title: string;
+  description: string;
+  durationSec?: number;
+  target?: {
+    waterG?: number;
+    tempC?: number;
+  };
+  tips?: string[];
+}
+
+export interface BrewMethodInfo {
+  id: BrewMethodId;
+  name: string;
+  category: BrewMethodCategory;
+  icon: string;
+  description: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  brewTimeRange: { min: number; max: number }; // seconds
+  defaultRatio: number;
+  grindSize: 'extra_fine' | 'fine' | 'medium_fine' | 'medium' | 'medium_coarse' | 'coarse';
+  temperatureRange: { min: number; max: number }; // celsius
+  equipment: string[];
+  heroImage?: string;
+  gradient: readonly [string, string, ...string[]];
+  accentColor: string;
+}
+
+export interface BrewRecipe {
+  id: string;
+  name: string;
+  methodId: BrewMethodId;
+  description: string;
+  coffeeG: number;
+  waterMl: number;
+  ratio: number;
+  grindSize: number; // 0-100 scale
+  temperatureC: number;
+  brewTimeSec: number;
+  steps: BrewStep[];
+  isDefault: boolean;
+  tags?: string[];
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface Bean {
   id: string;
