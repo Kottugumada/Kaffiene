@@ -40,5 +40,5 @@ eas.json
 *.tsbuildinfo
 
 # generated native folders
-/ios
+# /ios  # Uncommented for Xcode Cloud
 /android
