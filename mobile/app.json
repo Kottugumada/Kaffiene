@@ -16,14 +16,15 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.kaffiene.app",
       "displayName": "Kaffiene",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "icon": {
         "source": "./assets/Kaffiene-logo.png",
         "backgroundColor": "#2A1412"
       },
       "infoPlist": {
         "NSCameraUsageDescription": "Kaffiene uses the camera to capture photos of your coffee and equipment.",
-        "NSPhotoLibraryUsageDescription": "Kaffiene accesses your photo library to save and select coffee images."
+        "NSPhotoLibraryUsageDescription": "Kaffiene accesses your photo library to save and select coffee images.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -41,8 +42,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "ff875804-1418-4029-8724-5a787559a573"
       }
-    }
+    },
+    "owner": "kottugumada"
   }
 }

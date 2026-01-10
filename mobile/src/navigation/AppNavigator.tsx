@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -12,6 +12,7 @@ import { TroubleshootScreen } from '../screens/TroubleshootScreen';
 import { GuidedDialInScreen } from '../screens/GuidedDialInScreen';
 import { BrewMethodDetailScreen } from '../screens/BrewMethodDetailScreen';
 import { GuidedBrewScreen } from '../screens/GuidedBrewScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { colors } from '../theme';
 import { BrewMethodId } from '../types';
 
@@ -24,6 +25,7 @@ export type RootStackParamList = {
   GuidedDialIn: { beanId?: string };
   BrewMethodDetail: { methodId: BrewMethodId; recipeId?: string };
   GuidedBrew: { methodId: BrewMethodId; recipeId: string };
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -52,12 +54,20 @@ function MainTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Kaffiene',
           headerTitle: 'Kaffiene',
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🏠</Text>,
-        }}
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings' as never)}
+              style={{ marginRight: 16 }}
+            >
+              <Text style={{ fontSize: 24 }}>⚙️</Text>
+            </TouchableOpacity>
+          ),
+        })}
       />
       <Tab.Screen
         name="Beans"
@@ -134,6 +144,11 @@ export function AppNavigator() {
             presentation: 'fullScreenModal',
             gestureEnabled: false,
           }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ title: 'Settings' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

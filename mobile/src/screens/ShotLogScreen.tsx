@@ -6,6 +6,17 @@ import { useBrewLogStore, useBeanStore, useUserPreferencesStore } from '../store
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { BrewMethodId, BrewParameters, EspressoParameters, FilterCoffeeParameters, PourOverParameters, TurkishCoffeeParameters, IndianFilterParameters, ColdBrewParameters } from '../types';
 import { calculateYield, calculateRatio } from '../utils/units';
+import {
+  formatWeight,
+  formatVolume,
+  formatTemperature,
+  getWeightUnitLabel,
+  getVolumeUnitLabel,
+  getTemperatureUnitLabel,
+  parseWeight,
+  parseVolume,
+  parseTemperature,
+} from '../utils/unitFormatter';
 import { getBrewMethod, getRecipeById, getRecipesByMethod } from '../data';
 
 type RouteParams = {
@@ -124,12 +135,17 @@ export function ShotLogScreen() {
 
   // Initialize from recipe when it loads
   useEffect(() => {
-    if (recipe) {
-      setCoffee(recipe.coffeeG.toString());
-      setWater(recipe.waterMl.toString());
-      setDose(recipe.coffeeG.toString());
-      setYieldAmount(recipe.waterMl.toString());
-      setTemperature(recipe.temperatureC.toString());
+    if (recipe && preferences) {
+      // Convert from base units to display units
+      const coffeeDisplay = formatWeight(recipe.coffeeG, preferences.coffeeWeightUnit);
+      const waterDisplay = formatVolume(recipe.waterMl, preferences.liquidVolumeUnit);
+      const tempDisplay = formatTemperature(recipe.temperatureC, preferences.temperatureUnit);
+      
+      setCoffee(coffeeDisplay);
+      setWater(waterDisplay);
+      setDose(coffeeDisplay);
+      setYieldAmount(waterDisplay);
+      setTemperature(tempDisplay);
       setGrind(recipe.grindSize);
       
       // Find matching ratio or use custom
@@ -148,7 +164,7 @@ export function ShotLogScreen() {
         setTime(recipe.brewTimeSec.toString());
       }
     }
-  }, [recipe, passedBrewTime, availableRatios]);
+  }, [recipe, passedBrewTime, availableRatios, preferences]);
 
   const currentRatio = useMemo(() => {
     if (useCustomRatio && customRatio) {
@@ -160,34 +176,49 @@ export function ShotLogScreen() {
 
   const handleDoseChange = (value: string) => {
     setDose(value);
-    const doseNum = parseFloat(value) || 0;
-    if (doseNum > 0 && isEspresso) {
-      const calculatedYield = doseNum * currentRatio;
-      setYieldAmount(calculatedYield.toFixed(1));
+    if (!preferences) return;
+    
+    // Convert to base units for calculation
+    const doseGrams = parseWeight(value, preferences.coffeeWeightUnit);
+    if (doseGrams > 0 && isEspresso) {
+      // Calculate yield in base units (ml)
+      const yieldMl = doseGrams * currentRatio;
+      // Convert back to display units
+      const yieldDisplay = formatVolume(yieldMl, preferences.liquidVolumeUnit);
+      setYieldAmount(yieldDisplay);
     }
   };
 
   const handleCoffeeChange = (value: string) => {
     setCoffee(value);
-    const coffeeNum = parseFloat(value) || 0;
-    if (coffeeNum > 0 && !isEspresso) {
-      const calculatedWater = coffeeNum * currentRatio;
-      setWater(calculatedWater.toFixed(0));
+    if (!preferences) return;
+    
+    // Convert to base units for calculation
+    const coffeeGrams = parseWeight(value, preferences.coffeeWeightUnit);
+    if (coffeeGrams > 0 && !isEspresso) {
+      // Calculate water in base units (ml)
+      const waterMl = coffeeGrams * currentRatio;
+      // Convert back to display units
+      const waterDisplay = formatVolume(waterMl, preferences.liquidVolumeUnit);
+      setWater(waterDisplay);
     }
   };
 
   const handleRatioSelect = (ratioId: string) => {
     setSelectedRatioId(ratioId);
     setUseCustomRatio(false);
+    if (!preferences) return;
     
     const selected = availableRatios.find(r => r.id === ratioId);
     if (selected) {
       if (isEspresso) {
-        const doseNum = parseFloat(dose) || 18;
-        setYieldAmount((doseNum * selected.ratio).toFixed(1));
+        const doseGrams = parseWeight(dose || '18', preferences.coffeeWeightUnit);
+        const yieldMl = doseGrams * selected.ratio;
+        setYieldAmount(formatVolume(yieldMl, preferences.liquidVolumeUnit));
       } else {
-        const coffeeNum = parseFloat(coffee) || 20;
-        setWater((coffeeNum * selected.ratio).toFixed(0));
+        const coffeeGrams = parseWeight(coffee || '20', preferences.coffeeWeightUnit);
+        const waterMl = coffeeGrams * selected.ratio;
+        setWater(formatVolume(waterMl, preferences.liquidVolumeUnit));
       }
     }
   };
@@ -195,15 +226,18 @@ export function ShotLogScreen() {
   const handleCustomRatioChange = (value: string) => {
     setCustomRatio(value);
     setUseCustomRatio(true);
+    if (!preferences) return;
     
     const ratioNum = parseFloat(value) || 0;
     if (ratioNum > 0) {
       if (isEspresso) {
-        const doseNum = parseFloat(dose) || 18;
-        setYieldAmount((doseNum * ratioNum).toFixed(1));
+        const doseGrams = parseWeight(dose || '18', preferences.coffeeWeightUnit);
+        const yieldMl = doseGrams * ratioNum;
+        setYieldAmount(formatVolume(yieldMl, preferences.liquidVolumeUnit));
       } else {
-        const coffeeNum = parseFloat(coffee) || 20;
-        setWater((coffeeNum * ratioNum).toFixed(0));
+        const coffeeGrams = parseWeight(coffee || '20', preferences.coffeeWeightUnit);
+        const waterMl = coffeeGrams * ratioNum;
+        setWater(formatVolume(waterMl, preferences.liquidVolumeUnit));
       }
     }
   };
@@ -213,59 +247,68 @@ export function ShotLogScreen() {
       return;
     }
 
+    if (!preferences) return;
+    
+    // Convert display values back to base units for storage
+    const doseGrams = parseWeight(dose || '0', preferences.coffeeWeightUnit);
+    const yieldMl = parseVolume(yieldAmount || '0', preferences.liquidVolumeUnit);
+    const coffeeGrams = parseWeight(coffee || '0', preferences.coffeeWeightUnit);
+    const waterMl = parseVolume(water || '0', preferences.liquidVolumeUnit);
+    const tempCelsius = parseTemperature(temperature || '92', preferences.temperatureUnit);
+    
     let parameters: BrewParameters;
     
     if (isEspresso) {
       parameters = {
-        dose: parseFloat(dose) || 0,
-        yield: parseFloat(yieldAmount) || 0,
+        dose: doseGrams,
+        yield: yieldMl,
         time: parseFloat(time) || 0,
         grind,
-        temperature: parseFloat(temperature) || 92,
+        temperature: tempCelsius,
         ratio: currentRatio,
       } as EspressoParameters;
     } else if (methodId === 'turkish') {
       parameters = {
-        coffee: parseFloat(coffee) || 0,
-        water: parseFloat(water) || 0,
+        coffee: coffeeGrams,
+        water: waterMl,
         sugar: 0,
-        temperature: parseFloat(temperature) || 70,
+        temperature: tempCelsius,
         brewTime: parseFloat(time) || 0,
       } as TurkishCoffeeParameters;
     } else if (methodId === 'pour_over' || methodId === 'v60' || methodId === 'chemex') {
       parameters = {
-        coffee: parseFloat(coffee) || 0,
-        water: parseFloat(water) || 0,
+        coffee: coffeeGrams,
+        water: waterMl,
         grind,
-        temperature: parseFloat(temperature) || 94,
+        temperature: tempCelsius,
         totalTime: parseFloat(time) || 0,
         ratio: currentRatio,
       } as PourOverParameters;
     } else if (methodId === 'indian_filter') {
       parameters = {
-        coffee: parseFloat(coffee) || 0,
-        water: parseFloat(water) || 0,
+        coffee: coffeeGrams,
+        water: waterMl,
         grind,
-        temperature: parseFloat(temperature) || 96,
+        temperature: tempCelsius,
         brewTime: parseFloat(time) || 0,
         ratio: currentRatio,
       } as IndianFilterParameters;
     } else if (methodId === 'cold_brew') {
       parameters = {
-        coffee: parseFloat(coffee) || 0,
-        water: parseFloat(water) || 0,
+        coffee: coffeeGrams,
+        water: waterMl,
         grind,
-        temperature: parseFloat(temperature) || 20,
+        temperature: tempCelsius,
         brewTime: parseFloat(time) || 0,
         ratio: currentRatio,
         style: currentRatio <= 8 ? 'concentrate' : 'ready_to_drink',
       } as ColdBrewParameters;
     } else {
       parameters = {
-        coffee: parseFloat(coffee) || 0,
-        water: parseFloat(water) || 0,
+        coffee: coffeeGrams,
+        water: waterMl,
         grind,
-        temperature: parseFloat(temperature) || 94,
+        temperature: tempCelsius,
         brewTime: parseFloat(time) || 0,
         ratio: currentRatio,
       } as FilterCoffeeParameters;
@@ -380,7 +423,7 @@ export function ShotLogScreen() {
             value={dose}
             onChangeText={handleDoseChange}
             keyboardType="decimal-pad"
-            unit="g"
+            unit={preferences ? getWeightUnitLabel(preferences.coffeeWeightUnit) : 'g'}
           />
 
           <Input
@@ -388,7 +431,7 @@ export function ShotLogScreen() {
             value={yieldAmount}
             onChangeText={setYieldAmount}
             keyboardType="decimal-pad"
-            unit="ml"
+            unit={preferences ? getVolumeUnitLabel(preferences.liquidVolumeUnit) : 'ml'}
           />
         </>
       ) : (
@@ -398,7 +441,7 @@ export function ShotLogScreen() {
             value={coffee}
             onChangeText={handleCoffeeChange}
             keyboardType="decimal-pad"
-            unit="g"
+            unit={preferences ? getWeightUnitLabel(preferences.coffeeWeightUnit) : 'g'}
           />
 
           <Input
@@ -406,7 +449,7 @@ export function ShotLogScreen() {
             value={water}
             onChangeText={setWater}
             keyboardType="decimal-pad"
-            unit="ml"
+            unit={preferences ? getVolumeUnitLabel(preferences.liquidVolumeUnit) : 'ml'}
           />
         </>
       )}
@@ -434,7 +477,7 @@ export function ShotLogScreen() {
         value={temperature}
         onChangeText={setTemperature}
         keyboardType="decimal-pad"
-        unit="°C"
+        unit={preferences ? getTemperatureUnitLabel(preferences.temperatureUnit) : '°C'}
       />
 
       <View style={styles.section}>

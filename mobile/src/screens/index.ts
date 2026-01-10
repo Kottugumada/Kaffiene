@@ -7,4 +7,5 @@ export * from './TroubleshootScreen';
 export * from './GuidedDialInScreen';
 export * from './BrewMethodDetailScreen';
 export * from './GuidedBrewScreen';
+export * from './SettingsScreen';
 

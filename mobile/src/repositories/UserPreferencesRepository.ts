@@ -16,7 +16,7 @@ export class UserPreferencesRepository {
       const defaultPrefs: UserPreferences = {
         userId: DEFAULT_USER_ID,
         coffeeWeightUnit: 'grams',
-        liquidVolumeUnit: 'ounces',
+        liquidVolumeUnit: 'milliliters',
         temperatureUnit: 'celsius',
         defaultBrewMethod: 'espresso',
         uiMode: 'beginner',

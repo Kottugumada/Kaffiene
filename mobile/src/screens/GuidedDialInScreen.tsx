@@ -2,10 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Input, Button, StarRating, Slider, Card, ImagePickerButton } from '../components';
-import { useBrewLogStore, useBeanStore } from '../store';
+import { useBrewLogStore, useBeanStore, useUserPreferencesStore } from '../store';
 import { colors, spacing, typography, shadows, borderRadius } from '../theme';
 import { EspressoParameters, BrewMethod, TroubleshootingAnswer, TroubleshootingDiagnosis } from '../types';
 import { calculateYield, calculateRatio } from '../utils/units';
+import {
+  formatWeight,
+  formatVolume,
+  formatTemperature,
+  getWeightUnitLabel,
+  getVolumeUnitLabel,
+  getTemperatureUnitLabel,
+  parseWeight,
+  parseVolume,
+  parseTemperature,
+} from '../utils/unitFormatter';
 import { getRecommendedParameters, getMatchingRecipes } from '../services/seedDataService';
 import { diagnoseTroubleshooting } from '../services/recommendationService';
 import { getRatioById } from '../services/ratioService';
@@ -110,6 +121,7 @@ export function GuidedDialInScreen() {
   const { beanId } = route.params || {};
   const { beans, loadBeans } = useBeanStore();
   const { addLog } = useBrewLogStore();
+  const { preferences, loadPreferences } = useUserPreferencesStore();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [dose, setDose] = useState('18');
@@ -130,20 +142,22 @@ export function GuidedDialInScreen() {
 
   useEffect(() => {
     loadBeans();
+    loadPreferences();
   }, []);
 
   useEffect(() => {
     // Set recommended parameters when bean is selected and on step 1
-    if (selectedBean && currentStep === 1) {
+    if (selectedBean && currentStep === 1 && preferences) {
       const recommended = getRecommendedParameters(selectedBean);
-      setDose(recommended.dose.toString());
-      setYieldAmount(recommended.yield.toString());
+      // Convert from base units to display units
+      setDose(formatWeight(recommended.dose, preferences.coffeeWeightUnit));
+      setYieldAmount(formatVolume(recommended.yield, preferences.liquidVolumeUnit));
       setTime(recommended.time.toString());
-      setTemperature(recommended.temperature.toString());
+      setTemperature(formatTemperature(recommended.temperature, preferences.temperatureUnit));
       setPressure(recommended.pressure.toString());
       setSelectedRatio(`1:${recommended.ratio}`);
     }
-  }, [selectedBean, currentStep]);
+  }, [selectedBean, currentStep, preferences]);
   
   const step = DIAL_IN_STEPS[currentStep];
   const isLastStep = currentStep === DIAL_IN_STEPS.length - 1;
@@ -160,11 +174,13 @@ export function GuidedDialInScreen() {
 
   const handleDoseChange = (value: string) => {
     setDose(value);
-    const doseNum = parseFloat(value) || 0;
+    if (!preferences) return;
+    
+    const doseGrams = parseWeight(value, preferences.coffeeWeightUnit);
     const ratio = parseFloat(selectedRatio.split(':')[1]);
-    if (doseNum > 0 && ratio > 0) {
-      const calculatedYield = calculateYield(doseNum, ratio);
-      setYieldAmount(calculatedYield.toFixed(1));
+    if (doseGrams > 0 && ratio > 0) {
+      const yieldMl = calculateYield(doseGrams, ratio);
+      setYieldAmount(formatVolume(yieldMl, preferences.liquidVolumeUnit));
     }
   };
 
@@ -177,14 +193,20 @@ export function GuidedDialInScreen() {
       return;
     }
 
+    if (!preferences) return;
+    
+    const doseGrams = parseWeight(dose || '18', preferences.coffeeWeightUnit);
+    const yieldMl = parseVolume(yieldAmount || '36', preferences.liquidVolumeUnit);
+    const tempCelsius = parseTemperature(temperature || '93', preferences.temperatureUnit);
+    
     const currentShot: EspressoParameters = {
-      dose: parseFloat(dose) || 18,
-      yield: parseFloat(yieldAmount) || 36,
+      dose: doseGrams,
+      yield: yieldMl,
       time: parseFloat(time) || 28,
       grind,
-      temperature: parseFloat(temperature) || 93,
+      temperature: tempCelsius,
       pressure: parseFloat(pressure) || 9,
-      ratio: calculateRatio(parseFloat(dose) || 18, 'grams', parseFloat(yieldAmount) || 36, 'ml'),
+      ratio: calculateRatio(doseGrams, 'grams', yieldMl, 'ml'),
     };
 
     const timeNum = parseFloat(time) || 28;
@@ -261,18 +283,23 @@ export function GuidedDialInScreen() {
   };
 
   const handleSave = async () => {
-    if (!beanId) {
+    if (!beanId || !preferences) {
       return;
     }
 
+    // Convert from display units to base units for storage
+    const doseGrams = parseWeight(dose || '0', preferences.coffeeWeightUnit);
+    const yieldMl = parseVolume(yieldAmount || '0', preferences.liquidVolumeUnit);
+    const tempCelsius = parseTemperature(temperature || '93', preferences.temperatureUnit);
+
     const parameters: EspressoParameters = {
-      dose: parseFloat(dose) || 0,
-      yield: parseFloat(yieldAmount) || 0,
+      dose: doseGrams,
+      yield: yieldMl,
       time: parseFloat(time) || 0,
       grind,
-      temperature: parseFloat(temperature) || 93,
+      temperature: tempCelsius,
       pressure: parseFloat(pressure) || 9,
-      ratio: calculateRatio(parseFloat(dose) || 0, 'grams', parseFloat(yieldAmount) || 0, 'ml'),
+      ratio: calculateRatio(doseGrams, 'grams', yieldMl, 'ml'),
     };
 
     try {
@@ -360,19 +387,19 @@ export function GuidedDialInScreen() {
             )}
 
             <Input
-              label="Dose (grams)"
+              label="Dose"
               value={dose}
               onChangeText={handleDoseChange}
               keyboardType="decimal-pad"
-              unit="g"
+              unit={preferences ? getWeightUnitLabel(preferences.coffeeWeightUnit) : 'g'}
             />
 
             <Input
-              label="Yield (milliliters)"
+              label="Yield"
               value={yieldAmount}
               onChangeText={setYieldAmount}
               keyboardType="decimal-pad"
-              unit="ml"
+              unit={preferences ? getVolumeUnitLabel(preferences.liquidVolumeUnit) : 'ml'}
             />
 
             <Input
@@ -401,7 +428,7 @@ export function GuidedDialInScreen() {
                 value={temperature}
                 onChangeText={setTemperature}
                 keyboardType="decimal-pad"
-                unit="°C"
+                unit={preferences ? getTemperatureUnitLabel(preferences.temperatureUnit) : '°C'}
               />
             )}
 
