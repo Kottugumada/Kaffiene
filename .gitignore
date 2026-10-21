@@ -28,6 +28,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Secrets
+mobile/play-store-key.json
+
 # Local env files
 .env*.local
 mobile/.env*.local
