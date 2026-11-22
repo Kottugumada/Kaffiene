@@ -4,9 +4,8 @@ set -e
 echo "▶ ci_post_clone.sh started"
 echo "CI_PRIMARY_REPOSITORY_PATH=$CI_PRIMARY_REPOSITORY_PATH"
 
-echo "▶ Installing CocoaPods via gem..."
-gem install cocoapods --no-document --user-install
-export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
+echo "▶ Installing CocoaPods via Homebrew..."
+brew install cocoapods
 echo "▶ CocoaPods version: $(pod --version)"
 
 echo "▶ Setting up Node..."
