@@ -10,6 +10,9 @@ echo "▶ CocoaPods version: $(pod --version)"
 
 echo "▶ Installing Node.js via Homebrew..."
 brew install node
+# Ensure brew-installed binaries are in PATH for all subsequent commands
+# (including Ruby subshells invoked by pod install / Podfile)
+export PATH="$(brew --prefix)/bin:$PATH"
 echo "▶ Node version: $(node --version)"
 echo "▶ npm version: $(npm --version)"
 
