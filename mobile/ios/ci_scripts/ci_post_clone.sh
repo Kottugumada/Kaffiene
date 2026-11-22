@@ -8,12 +8,8 @@ echo "▶ Installing CocoaPods via Homebrew..."
 brew install cocoapods
 echo "▶ CocoaPods version: $(pod --version)"
 
-echo "▶ Setting up Node..."
-export NVM_DIR="$HOME/.nvm"
-# Use system node if nvm not available
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  . "$NVM_DIR/nvm.sh"
-fi
+echo "▶ Installing Node.js via Homebrew..."
+brew install node
 echo "▶ Node version: $(node --version)"
 echo "▶ npm version: $(npm --version)"
 
