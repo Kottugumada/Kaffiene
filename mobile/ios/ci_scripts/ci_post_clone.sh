@@ -12,9 +12,6 @@ echo "npm version: $(npm --version)"
 
 npm install --legacy-peer-deps
 
-echo "🔄 Regenerating iOS project with Expo prebuild..."
-npx expo prebuild --platform ios
-
 echo "🍫 Installing CocoaPods dependencies..."
 cd "$CI_PRIMARY_REPOSITORY_PATH/mobile/ios"
 
