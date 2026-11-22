@@ -31,10 +31,6 @@ jobs:
           git config --global user.email "ci@kaffiene.app"
           git config --global user.name "Kaffiene CI"
 
-      - name: Write Google Play key
-        working-directory: mobile
-        run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_KEY }}' | base64 --decode > play-store-key.json
-
       - name: Build Android App Bundle
         working-directory: mobile
         run: npx eas-cli build --platform android --profile production --non-interactive
